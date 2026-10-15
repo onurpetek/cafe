@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Hermes Kafe | Amasya</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@500;700;800&family=Source+Serif+4:wght@400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <header class="ust">
+    <a href="#" class="logo">Hermes Kahve</a>
+    <button class="menu-btn" id="menuBtn" aria-label="Menüyü aç" aria-expanded="false">☰</button>
+    <nav id="nav">
+      <a href="#menu">Menü</a>
+      <a href="#hakkimizda">Hakkımızda</a>
+      <a href="#iletisim">İletişim</a>
+    </nav>
+  </header>
+
+  <main>
+    <section class="hero">
+      <h1>Günün ilk fincanı burada demlenir.</h1>
+      <p>Taze kavrulmuş çekirdekler, ev yapımı tatlılar ve ders arasında oturup kalkmak istemeyeceğin bir köşe.</p>
+      <p class="saat">Her gün 08:00 – 22:00</p>
+      <a class="buton" href="#menu">Menüye bak</a>
+    </section>
+
+    <section id="menu" class="bolum">
+      <h2>Menü</h2>
+      <div class="filtre" id="filtre">
+        <button class="aktif" data-kat="hepsi">Hepsi</button>
+        <button data-kat="kahve">Kahveler</button>
+        <button data-kat="soguk">Soğuk içecekler</button>
+        <button data-kat="tatli">Tatlılar</button>
+      </div>
+
+      <div class="menu-duzen">
+        <ul id="urunler" class="urunler"></ul>
+
+        <aside class="sepet" aria-live="polite">
+          <h3>Siparişin</h3>
+          <ul id="sepetListe"></ul>
+          <p class="toplam">Toplam: <strong id="toplam">0 ₺</strong></p>
+          <button class="buton" id="siparisVer">Siparişi onayla</button>
+          <button class="temizle" id="temizle">Sepeti boşalt</button>
+        </aside>
+      </div>
+    </section>
+
+    <section id="hakkimizda" class="bolum koyu">
+      <h2>Hakkımızda</h2>
+      <p>2022'dan beri Amasya'da, çekirdeğini kendimiz seçip her sabah kavuruyoruz. Wi-Fi ücretsiz, prizler her masada, çay ise her zaman taze.</p>
+    </section>
+
+    <section id="iletisim" class="bolum">
+      <h2>İletişim</h2>
+      <p>Adres: Amasya Merkes hacılar meydanı ...<br>Telefon: 0312 000 00 00</p>
+
+      <form id="mesajForm" novalidate>
+        <label for="ad">Adın</label>
+        <input id="ad" type="text" placeholder="Adını yaz">
+        <label for="mesaj">Mesajın</label>
+        <textarea id="mesaj" rows="4" placeholder="Rezervasyon, öneri, soru..."></textarea>
+        <p id="formHata" class="hata" role="alert"></p>
+        <button class="buton" type="submit">Mesajı gönder</button>
+      </form>
+    </section>
+  </main>
+
+  <footer>© 2026 Hermes Kahve</footer>
+  <div id="bildirim" class="bildirim" role="status"></div>
+
+  <script src="script.js"></script>
+</body>
+</html>
