@@ -1,0 +1,23 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /siparisler/{id} {
+      // Müşteri sadece düzgün biçimli yeni sipariş EKLEYEBİLİR
+      allow create: if request.resource.data.keys().hasOnly(['masa', 'urunler', 'toplam', 'durum', 'zaman'])
+        && request.resource.data.masa is string
+        && request.resource.data.masa.size() > 0
+        && request.resource.data.masa.size() <= 10
+        && request.resource.data.urunler is list
+        && request.resource.data.urunler.size() > 0
+        && request.resource.data.urunler.size() <= 40
+        && request.resource.data.toplam is number
+        && request.resource.data.toplam <= 20000
+        && request.resource.data.durum == 'yeni'
+        && request.resource.data.zaman == request.time;
+
+      // Okuma, güncelleme ve silme SADECE kasiyer hesabında
+      allow read, update, delete: if request.auth != null
+        && request.auth.token.email == 'KASIYER_EPOSTASI@ornek.com';
+    }
+  }
+}

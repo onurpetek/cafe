@@ -151,3 +151,20 @@ footer { text-align: center; padding: 24px; color: var(--gri); border-top: 1px s
   html { scroll-behavior: auto; }
   .bildirim { transition: none; }
 }
+
+/* Masa bilgisi */
+.masa { font-weight: 700; color: var(--yesil); margin-bottom: 8px; }
+.masa.uyari { color: #b3261e; }
+.sepet .buton:disabled { opacity: 0.5; cursor: not-allowed; }
+
+/* Kasa paneli */
+[hidden] { display: none !important; }
+.giris { max-width: 360px; }
+.siparisler { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 20px; margin-top: 16px; }
+.siparis { border: 2px solid var(--yesil); border-radius: 10px; padding: 16px; background: #fff; }
+.siparis h3 { font-size: 1.6rem; color: var(--yesil); }
+.siparis .saat { color: var(--gri); font-size: 0.9rem; }
+.siparis ul { list-style: none; margin: 12px 0; }
+.siparis li { padding: 4px 0; border-bottom: 1px dotted var(--gri); }
+.siparis .buton { width: 100%; }
+.bos { color: var(--gri); }

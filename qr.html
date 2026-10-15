@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Masa QR kodları</title>
+  <link rel="stylesheet" href="style.css">
+  <style>
+    .kodlar { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 24px; margin-top: 24px; }
+    .kod { text-align: center; padding: 12px; border: 1px solid var(--cizgi); break-inside: avoid; }
+    .kod div { display: flex; justify-content: center; }
+    .kod p { font-family: "Bricolage Grotesque", sans-serif; font-weight: 800; font-size: 1.4rem; margin-top: 8px; }
+    .kontrol { display: grid; gap: 8px; max-width: 480px; }
+    @media print { .kontrol, .ust { display: none; } }
+  </style>
+</head>
+<body>
+  <main class="bolum">
+    <h2>Masa QR kodları</h2>
+    <div class="kontrol">
+      <label for="adres">Sitenin adresi</label>
+      <input id="adres" value="https://onurpetek.github.io/cafe/">
+      <label for="sayi">Masa sayısı</label>
+      <input id="sayi" type="number" min="1" max="100" value="10">
+      <button class="buton" id="uret">QR kodları oluştur</button>
+      <p class="bos">Oluşturduktan sonra Ctrl+P ile yazdırıp masalara koyabilirsin.</p>
+    </div>
+    <div class="kodlar" id="kodlar"></div>
+  </main>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <script>
+    document.getElementById("uret").addEventListener("click", () => {
+      const adres = document.getElementById("adres").value.trim().replace(/\/?$/, "/");
+      const sayi = Number(document.getElementById("sayi").value);
+      const alan = document.getElementById("kodlar");
+      alan.innerHTML = "";
+      for (let i = 1; i <= sayi; i++) {
+        const kutu = document.createElement("div");
+        kutu.className = "kod";
+        const qr = document.createElement("div");
+        const yazi = document.createElement("p");
+        yazi.textContent = "Masa " + i;
+        kutu.append(qr, yazi);
+        alan.appendChild(kutu);
+        new QRCode(qr, { text: adres + "?masa=" + i, width: 160, height: 160 });
+      }
+    });
+  </script>
+</body>
+</html>

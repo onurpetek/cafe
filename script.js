@@ -1,3 +1,9 @@
+import { db } from "./firebase-config.js";
+import { collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
+
+// Masa numarası QR koddaki adresten gelir: ...?masa=5
+const masa = (new URLSearchParams(location.search).get("masa") || "").trim().slice(0, 10);
+
 // 1) Ürün verisi
 const urunler = [
   { id: 1, ad: "Filtre Kahve",    aciklama: "Günün çekirdeğiyle demleme",       fiyat: 70,  kat: "kahve" },
@@ -100,14 +106,33 @@ document.getElementById("temizle").addEventListener("click", () => {
   sepetiCiz();
 });
 
-document.getElementById("siparisVer").addEventListener("click", () => {
-  if (Object.keys(sepet).length === 0) {
+const siparisBtn = document.getElementById("siparisVer");
+siparisBtn.addEventListener("click", async () => {
+  const idler = Object.keys(sepet);
+  if (idler.length === 0) {
     bildir("Önce sepete bir şey ekle.");
     return;
   }
-  sepet = {};
-  sepetiCiz();
-  bildir("Siparişin alındı, hazırlıyoruz!");
+  siparisBtn.disabled = true;
+
+  const kalemler = idler.map(id => {
+    const u = urunler.find(x => x.id === Number(id));
+    return { ad: u.ad, adet: sepet[id], fiyat: u.fiyat };
+  });
+  const toplam = kalemler.reduce((t, k) => t + k.fiyat * k.adet, 0);
+
+  try {
+    await addDoc(collection(db, "siparisler"), {
+      masa, urunler: kalemler, toplam, durum: "yeni", zaman: serverTimestamp()
+    });
+    sepet = {};
+    sepetiCiz();
+    bildir(`Siparişin alındı, Masa ${masa}'a getireceğiz!`);
+  } catch (hata) {
+    console.error(hata);
+    bildir("Sipariş gönderilemedi, tekrar dene.");
+  }
+  siparisBtn.disabled = false;
 });
 
 // Mobil menü
@@ -138,3 +163,13 @@ document.getElementById("mesajForm").addEventListener("submit", e => {
 // Başlangıç
 menuyuCiz();
 sepetiCiz();
+
+// Masa numarası yoksa sipariş verilemez
+const masaBilgi = document.getElementById("masaBilgi");
+if (masa) {
+  masaBilgi.textContent = "Masa " + masa;
+} else {
+  masaBilgi.textContent = "Masa numarası bulunamadı. Masandaki QR kodu okut.";
+  masaBilgi.classList.add("uyari");
+  siparisBtn.disabled = true;
+}

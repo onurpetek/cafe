@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Kasa | Çınar Kahve</title>
+  <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@500;700;800&family=Source+Serif+4:wght@400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header class="ust">
+    <span class="logo">Kasa paneli</span>
+    <button id="cikis" class="temizle" hidden>Çıkış yap</button>
+  </header>
+
+  <main class="bolum">
+    <form id="girisForm" class="giris">
+      <h2>Giriş yap</h2>
+      <label for="eposta">E-posta</label>
+      <input id="eposta" type="email" autocomplete="username" required>
+      <label for="sifre">Şifre</label>
+      <input id="sifre" type="password" autocomplete="current-password" required>
+      <p id="hata" class="hata" role="alert"></p>
+      <button class="buton" type="submit">Giriş yap</button>
+    </form>
+
+    <section id="panel" hidden>
+      <h2>Bekleyen siparişler <span id="sayac"></span></h2>
+      <div id="liste" class="siparisler"></div>
+    </section>
+  </main>
+
+  <script type="module">
+    import { auth, db } from "./firebase-config.js";
+    import { signInWithEmailAndPassword, signOut, onAuthStateChanged }
+      from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";
+    import { collection, query, orderBy, onSnapshot, updateDoc, doc }
+      from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
+
+    const girisForm = document.getElementById("girisForm");
+    const panel = document.getElementById("panel");
+    const liste = document.getElementById("liste");
+    const sayac = document.getElementById("sayac");
+    const cikis = document.getElementById("cikis");
+    const hata = document.getElementById("hata");
+    let dinlemeyiDurdur = null;
+    let ilkYukleme = true;
+
+    // Yeni sipariş gelince kısa bip sesi
+    function bip() {
+      try {
+        const ctx = new (window.AudioContext || window.webkitAudioContext)();
+        const osc = ctx.createOscillator();
+        osc.frequency.value = 880;
+        osc.connect(ctx.destination);
+        osc.start();
+        osc.stop(ctx.currentTime + 0.25);
+      } catch (e) {}
+    }
+
+    girisForm.addEventListener("submit", async e => {
+      e.preventDefault();
+      hata.textContent = "";
+      try {
+        await signInWithEmailAndPassword(auth, eposta.value, sifre.value);
+      } catch {
+        hata.textContent = "E-posta veya şifre hatalı.";
+      }
+    });
+
+    cikis.addEventListener("click", () => signOut(auth));
+
+    onAuthStateChanged(auth, user => {
+      if (user) {
+        girisForm.hidden = true;
+        panel.hidden = false;
+        cikis.hidden = false;
+        dinle();
+      } else {
+        if (dinlemeyiDurdur) dinlemeyiDurdur();
+        dinlemeyiDurdur = null;
+        girisForm.hidden = false;
+        panel.hidden = true;
+        cikis.hidden = true;
+        liste.innerHTML = "";
+      }
+    });
+
+    // Siparişleri canlı dinle
+    function dinle() {
+      ilkYukleme = true;
+      const q = query(collection(db, "siparisler"), orderBy("zaman"));
+      dinlemeyiDurdur = onSnapshot(q, snap => {
+        if (!ilkYukleme && snap.docChanges().some(c => c.type === "added")) bip();
+        ilkYukleme = false;
+
+        liste.innerHTML = "";
+        let adet = 0;
+        snap.forEach(d => {
+          const s = d.data();
+          if (s.durum !== "yeni") return;
+          adet++;
+          liste.appendChild(kartYap(d.id, s));
+        });
+        sayac.textContent = adet ? `(${adet})` : "";
+        if (adet === 0) {
+          const p = document.createElement("p");
+          p.className = "bos";
+          p.textContent = "Bekleyen sipariş yok.";
+          liste.appendChild(p);
+        }
+      }, () => {
+        liste.textContent = "Siparişler okunamadı. Bu hesabın yetkisi olmayabilir.";
+      });
+    }
+
+    // textContent kullanıyoruz: müşteriden gelen metin sayfaya kod olarak işlenmesin
+    function kartYap(id, s) {
+      const kart = document.createElement("article");
+      kart.className = "siparis";
+
+      const baslik = document.createElement("h3");
+      baslik.textContent = "Masa " + s.masa;
+      const saat = document.createElement("p");
+      saat.className = "saat";
+      saat.textContent = s.zaman ? s.zaman.toDate().toLocaleTimeString("tr-TR", { hour: "2-digit", minute: "2-digit" }) : "";
+
+      const ul = document.createElement("ul");
+      let toplam = 0;
+      (s.urunler || []).forEach(k => {
+        toplam += Number(k.fiyat) * Number(k.adet);
+        const li = document.createElement("li");
+        li.textContent = `${k.adet} × ${k.ad}`;
+        ul.appendChild(li);
+      });
+
+      const t = document.createElement("p");
+      t.innerHTML = "<strong></strong>";
+      t.firstChild.textContent = "Toplam: " + toplam + " ₺";
+
+      const btn = document.createElement("button");
+      btn.className = "buton";
+      btn.textContent = "Hazırlandı";
+      btn.addEventListener("click", () => {
+        btn.disabled = true;
+        updateDoc(doc(db, "siparisler", id), { durum: "hazir" });
+      });
+
+      kart.append(baslik, saat, ul, t, btn);
+      return kart;
+    }
+  </script>
+</body>
+</html>
